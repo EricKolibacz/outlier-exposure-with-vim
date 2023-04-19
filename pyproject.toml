@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "activation-ood"
 version = "0.1.0"
-description = "Out-of-distribution detection trough network activations"
+description = "Out-of-distribution detection through network activations"
 authors = ["EricKolibacz <26793186+EricKolibacz@users.noreply.github.com>"]
 license = "Apache License 2.0"
 readme = "README.md"

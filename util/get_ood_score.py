@@ -29,7 +29,7 @@ def get_ood_scores(loader, anomaly_score_calculator, model_net, use_penultimate=
     """
     _score = []
 
-    odd_num_examples = len(loader.dataset) // 5
+    ood_num_examples = len(loader.dataset) // 5
     with torch.no_grad():
         for batch_idx, (data, _) in enumerate(loader):
             if torch.cuda.is_available():
@@ -37,7 +37,7 @@ def get_ood_scores(loader, anomaly_score_calculator, model_net, use_penultimate=
             else:
                 fraction = 1000
 
-            if batch_idx >= odd_num_examples // fraction:
+            if batch_idx >= ood_num_examples // fraction:
                 break
 
             if torch.cuda.is_available():

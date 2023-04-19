@@ -1,7 +1,7 @@
 """Score by the maximum logit"""
 import torch
 
-from util.get_odd_score import to_np
+from util.get_ood_score import to_np
 
 
 def max_logit_anomaly_score(output):

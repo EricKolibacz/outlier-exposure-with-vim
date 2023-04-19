@@ -1,0 +1,3 @@
+[submodule "energy_ood"]
+	path = energy_ood
+	url = https://github.com/wetliu/energy_ood.git

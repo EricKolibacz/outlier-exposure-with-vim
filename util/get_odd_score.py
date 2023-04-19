@@ -44,11 +44,12 @@ def get_ood_scores(loader, anomaly_score_calculator, model_net, use_penultimate=
                 data = data.cuda()
 
             output = model_net(data)
+            probs = torch.softmax(output, dim=-1)
 
             if use_penultimate:
-                score = anomaly_score_calculator(output[0], output[1])
+                score = anomaly_score_calculator(output)
             else:
-                score = anomaly_score_calculator(output[0])
+                score = anomaly_score_calculator(probs)
             _score.append(score)
 
     return concat(_score).copy()

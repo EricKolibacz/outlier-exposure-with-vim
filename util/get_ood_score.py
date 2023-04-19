@@ -13,7 +13,7 @@ def to_np(x):
     return x.data.cpu().numpy()
 
 
-def get_ood_scores(loader, anomaly_score_calculator, model_net, use_penultimate=False):
+def get_ood_scores(loader, anomaly_score_calculator, model_net, ood_num_examples, in_dist=False):
     """
     Calculates the anomaly scores for a portion of the given dataset.
     If a GPU is not available, will run on a smaller fraction of the
@@ -29,27 +29,17 @@ def get_ood_scores(loader, anomaly_score_calculator, model_net, use_penultimate=
     """
     _score = []
 
-    ood_num_examples = len(loader.dataset) // 5
     with torch.no_grad():
         for batch_idx, (data, _) in enumerate(loader):
-            if torch.cuda.is_available():
-                fraction = 200
-            else:
-                fraction = 1000
-
-            if batch_idx >= ood_num_examples // fraction:
+            if batch_idx >= ood_num_examples // loader.batch_size and in_dist is False:
                 break
 
             if torch.cuda.is_available():
                 data = data.cuda()
 
             output = model_net(data)
-            probs = torch.softmax(output, dim=-1)
 
-            if use_penultimate:
-                score = anomaly_score_calculator(output)
-            else:
-                score = anomaly_score_calculator(probs)
+            score = anomaly_score_calculator(output)
             _score.append(score)
 
-    return concat(_score).copy()
+    return concat(_score)[:ood_num_examples].copy()

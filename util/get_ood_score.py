@@ -2,6 +2,8 @@
 import numpy as np
 import torch
 
+from energy_ood.utils.display_results import get_measures
+
 
 def concat(x):
     """Concatenates a vector"""
@@ -48,3 +50,36 @@ def get_ood_scores(loader, model, anomaly_score_calculator, ood_num_examples, in
             _score.append(score)
 
     return concat(_score)[:ood_num_examples].copy()
+
+
+def get_ood_score_for_multiple_datasets(loaders, model, anomaly_score_calculator, is_using="last"):
+    ood_num_examples = len(loaders[0][1].dataset) // 5
+
+    print(f"In distribution dataset: {loaders[0][0]}")
+
+    in_score = get_ood_scores(
+        loaders[0][1],
+        model,
+        anomaly_score_calculator,
+        ood_num_examples,
+        in_dist=True,
+        is_using=is_using,
+    )
+    results = []
+
+    for i in range(1, len(loaders)):
+        print(f"OOD dataset: {loaders[i][0]}")
+        out_score = get_ood_scores(
+            loaders[i][1],
+            model,
+            anomaly_score_calculator,
+            ood_num_examples,
+            is_using=is_using,
+        )
+        auroc, _, _ = get_measures(out_score[:], in_score[:])
+        results.append(auroc)
+
+    average = sum(results) / len(results)
+    results.append(average)
+
+    return results

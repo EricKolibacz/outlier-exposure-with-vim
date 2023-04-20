@@ -13,7 +13,7 @@ def to_np(x):
     return x.data.cpu().numpy()
 
 
-def get_ood_scores(loader, anomaly_score_calculator, model_net, ood_num_examples, in_dist=False):
+def get_ood_scores(loader, anomaly_score_calculator, model_net, ood_num_examples, in_dist=False, is_using="last"):
     """
     Calculates the anomaly scores for a portion of the given dataset.
     If a GPU is not available, will run on a smaller fraction of the
@@ -24,8 +24,8 @@ def get_ood_scores(loader, anomaly_score_calculator, model_net, ood_num_examples
                             logit of a batch of data and/or the
                             penultimate.
     model_net: The classifier model.
-    usePenultimate: True if anomaly_score_calculator needs the
-                    penultimate as a parameter. False otherwise.
+    is_using: "last" if anomaly score calculator needs last output
+              "last_penultimate" if needs last and penultimate
     """
     _score = []
 
@@ -37,9 +37,14 @@ def get_ood_scores(loader, anomaly_score_calculator, model_net, ood_num_examples
             if torch.cuda.is_available():
                 data = data.cuda()
 
-            output = model_net(data)
+            output, penultimate_output = model_net(data)
 
-            score = anomaly_score_calculator(output)
+            if is_using == "last":
+                score = anomaly_score_calculator(output)
+            elif is_using == "last_penultimate":
+                score = anomaly_score_calculator(output, penultimate_output)
+            else:
+                raise ValueError(f"Did not recognize is_using option: {is_using}")
             _score.append(score)
 
     return concat(_score)[:ood_num_examples].copy()

@@ -13,17 +13,17 @@ def to_np(x):
     return x.data.cpu().numpy()
 
 
-def get_ood_scores(loader, anomaly_score_calculator, model_net, ood_num_examples, in_dist=False, is_using="last"):
+def get_ood_scores(loader, model, anomaly_score_calculator, ood_num_examples, in_dist=False, is_using="last"):
     """
     Calculates the anomaly scores for a portion of the given dataset.
     If a GPU is not available, will run on a smaller fraction of the
     dataset, so that calculations will be faster.
 
     loader: A DataLoader that contains the loaded data of a dataset
+    model: The classifier model.
     anomaly_score_calculator: A function that takes in the output
                             logit of a batch of data and/or the
                             penultimate.
-    model_net: The classifier model.
     is_using: "last" if anomaly score calculator needs last output
               "last_penultimate" if needs last and penultimate
     """
@@ -37,7 +37,7 @@ def get_ood_scores(loader, anomaly_score_calculator, model_net, ood_num_examples
             if torch.cuda.is_available():
                 data = data.cuda()
 
-            output, penultimate_output = model_net(data)
+            output, penultimate_output = model(data)
 
             if is_using == "last":
                 score = anomaly_score_calculator(output)

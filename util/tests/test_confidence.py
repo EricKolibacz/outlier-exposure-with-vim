@@ -23,6 +23,16 @@ def test_binning_empty_bin():
         np.testing.assert_array_equal(exp, act)
 
 
+def test_binning_edge_case():
+    x = np.array([0, 1, 0])
+    bins = np.linspace(0, 1.0001, 4 + 1)
+    print(bins)
+    expected = [np.array([0, 0]), np.array([]), np.array([]), np.array([1])]
+    actual = bin_samples(x, bins)
+    for exp, act in zip(expected, actual):
+        np.testing.assert_array_equal(exp, act)
+
+
 def test_binning_different_keys_values():
     values = np.array([[0.2, 0.1], [0.7, 0.3], [0.3, -0.1]])
     keys = np.max(values, axis=1)

@@ -20,8 +20,8 @@ def compute_rms_calibration_error(labels, predictions, bins=10) -> np.ndarray:
     """Computes the root mean square calibration error
 
     Args:
-        bins (List): a list of bins; each of them containing predictions (samples, softmax_output),
-                     and labels
+        labels: label for each sample
+        predictions: model predictions on each class for each sample
 
     Returns:
         np.ndarray: root mean square calibration error
@@ -33,17 +33,17 @@ def compute_rms_calibration_error(labels, predictions, bins=10) -> np.ndarray:
     total_samples = len(labels)
 
     rms_calibration_error = 0
-    for labels, predictions in zip(labels_binned, preds_binned):
-        if labels.size == 0:  # empty
+    for bin_labels, bin_predictions in zip(labels_binned, preds_binned):
+        if bin_labels.size == 0:  # empty
             continue
 
-        assert len(predictions[:, 0]) == len(labels), "The predictions and labels don't have the same length"
+        assert len(bin_predictions[:, 0]) == len(bin_labels), "The predictions and labels don't have the same length"
 
-        bin_size = len(labels)
-        predicted_labels = np.argmax(predictions, axis=1)
-        correct_classified = labels == predicted_labels
+        bin_size = len(bin_labels)
+        predicted_labels = np.argmax(bin_predictions, axis=1)
+        correct_classified = bin_labels == predicted_labels
         ratio_correct = np.sum(correct_classified) / bin_size
-        mean_confidence = np.mean(np.max(predictions, axis=1))
+        mean_confidence = np.mean(np.max(bin_predictions, axis=1))
 
         rms_calibration_error += bin_size / total_samples * (ratio_correct - mean_confidence) ** 2
 

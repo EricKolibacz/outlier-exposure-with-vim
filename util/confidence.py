@@ -11,7 +11,7 @@ def bin_samples(keys: np.array, bins: np.array, values: np.array = None) -> list
 
     assert len(keys) == len(values)
 
-    inds = np.digitize(keys, bins)
+    inds = np.digitize(keys, bins, right=True)
     binned_x = [values[np.where(inds == i)] for i in range(1, len(bins))]
     return binned_x
 

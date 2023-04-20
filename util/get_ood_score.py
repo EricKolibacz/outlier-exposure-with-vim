@@ -52,10 +52,11 @@ def get_ood_scores(loader, model, anomaly_score_calculator, ood_num_examples, in
     return concat(_score)[:ood_num_examples].copy()
 
 
-def get_ood_score_for_multiple_datasets(loaders, model, anomaly_score_calculator, is_using="last"):
+def get_ood_score_for_multiple_datasets(loaders, model, anomaly_score_calculator, is_using="last", verbose=False):
     ood_num_examples = len(loaders[0][1].dataset) // 5
 
-    print(f"In distribution dataset: {loaders[0][0]}")
+    if verbose:
+        print(f"In distribution dataset: {loaders[0][0]}")
 
     in_score = get_ood_scores(
         loaders[0][1],
@@ -68,7 +69,8 @@ def get_ood_score_for_multiple_datasets(loaders, model, anomaly_score_calculator
     results = []
 
     for i in range(1, len(loaders)):
-        print(f"OOD dataset: {loaders[i][0]}")
+        if verbose:
+            print(f"OOD dataset: {loaders[i][0]}")
         out_score = get_ood_scores(
             loaders[i][1],
             model,

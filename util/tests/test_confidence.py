@@ -46,7 +46,7 @@ def test_binning_different_keys_values():
 
 def test_rms_calibration_error_perfect_binary():
     labels = np.array([0, 0, 1, 1])
-    predictions = np.array(
+    probabilities = np.array(
         [
             [1.0, 0.0],
             [1.0, 0.0],
@@ -56,14 +56,14 @@ def test_rms_calibration_error_perfect_binary():
     )
     expected = 0
 
-    actual = compute_rms_calibration_error(labels, predictions)
+    actual = compute_rms_calibration_error(labels, probabilities)
 
     assert expected == actual
 
 
 def test_rms_calibration_error_binary_calibrated():
     labels = np.array([0, 0, 0, 1])
-    predictions = np.array(
+    probabilities = np.array(
         [
             [0.75, 0.25],
             [0.75, 0.25],
@@ -73,36 +73,36 @@ def test_rms_calibration_error_binary_calibrated():
     )
     expected = 0
 
-    actual = compute_rms_calibration_error(labels, predictions)
+    actual = compute_rms_calibration_error(labels, probabilities)
 
     assert expected == actual
 
 
 def test_rms_calibration_error_binary():
     labels = np.array([0])
-    predictions = np.array([[0.75, 0.25]])
+    probabilities = np.array([[0.75, 0.25]])
     expected = 0.25
 
-    actual = compute_rms_calibration_error(labels, predictions)
+    actual = compute_rms_calibration_error(labels, probabilities)
 
     assert expected == actual
 
 
 def test_rms_calibration_error_binary_2outputs():
     labels = np.array([0, 1])
-    predictions = np.array([[0.75, 0.25], [0.75, 0.25]])
+    probabilities = np.array([[0.75, 0.25], [0.75, 0.25]])
     expected = 0.25
 
-    actual = compute_rms_calibration_error(labels, predictions)
+    actual = compute_rms_calibration_error(labels, probabilities)
 
     assert expected == actual
 
 
 def test_rms_calibration_error_binary_2outputs():
     labels = np.array([0, 0, 0])
-    predictions = np.array([[0.9, 0.1], [0.5, 0.499], [0.5, 0.499]])
+    probabilities = np.array([[0.9, 0.1], [0.5, 0.499], [0.5, 0.499]])
     expected = np.sqrt(1 / 3 * (0.9 - 1) ** 2 + 1 / 6 * (1 - 2) ** 2)
 
-    actual = compute_rms_calibration_error(labels, predictions)
+    actual = compute_rms_calibration_error(labels, probabilities)
 
     assert expected == actual

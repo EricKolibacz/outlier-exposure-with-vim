@@ -16,7 +16,6 @@ from vim_training.restore_model import restore_model
 from vim_training.test import test
 from vim_training.train import cosine_annealing, train
 
-IS_RESTORING = False
 REGIME = PRETRAINING
 SEED = 1
 MODEL_NAME = "WRN"
@@ -56,8 +55,8 @@ test_loader = torch.utils.data.DataLoader(
 
 # Create model
 model = WideResNet(40, NUM_CLASSES, 2, 0.3)
-if IS_RESTORING:
-    model = restore_model(model, MODEL_NAME, DATASET_NAME, SNAPSHOT_FOLDER)
+if REGIME["loading"] != "":
+    model = restore_model(model, FILE_PREFIX, os.join(SNAPSHOT_FOLDER, REGIME["loading"]))
 model.cuda()
 
 optimizer = torch.optim.SGD(

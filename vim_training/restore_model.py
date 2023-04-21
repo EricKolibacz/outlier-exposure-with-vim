@@ -4,16 +4,16 @@ import os
 import torch
 
 
-def restore_model(model, model_name: str, dataset_name: str, parent_folder: str):
+def restore_model(model, file_prefix: str, parent_folder: str):
     """Recursively look for a model trained on dataset in a folder"""
     model_found = False
-    for i in range(1000 - 1, -1, -1):
+    for epoch in range(1000 - 1, -1, -1):
         model_name = os.path.join(
-            parent_folder, dataset_name + "_" + model_name + "_pretrained_epoch_" + str(i) + ".pt"
+            parent_folder, f"{file_prefix}_epoch_{str(epoch)}.pt"
         )
         if os.path.isfile(model_name):
             model.load_state_dict(torch.load(model_name))
-            print("Model restored! Epoch:", i)
+            print("Model restored! Epoch:", epoch)
             model_found = True
             break
     if not model_found:

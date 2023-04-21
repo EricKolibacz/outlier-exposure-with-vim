@@ -14,7 +14,7 @@ def test(model, loader):
             data, label = data.cuda(), label.cuda()
 
             # forward
-            output, penultimate = model(data)
+            output, _ = model(data)
 
             loss = F.cross_entropy(output, label)
 

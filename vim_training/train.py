@@ -29,6 +29,9 @@ def train(model, train_loader_in, train_loader_out, scheduler, optimizer, loss_m
         # forward
         output_in, penultimate_in = model(input_in)
 
+        scheduler.step()
+        optimizer.zero_grad()
+
         if loss_method["name"] != "vim":
             loss = F.cross_entropy(output_in, label_in)
             # cross-entropy from softmax distribution to uniform distribution
@@ -54,10 +57,8 @@ def train(model, train_loader_in, train_loader_out, scheduler, optimizer, loss_m
                 + torch.pow(F.relu(loss_method["m_out"] - vprobs_out[:, -1]), 2).mean()
             )
 
-        optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-        scheduler.step()
 
         # exponential moving average
         loss_avg = loss_avg * 0.8 + float(loss) * 0.2

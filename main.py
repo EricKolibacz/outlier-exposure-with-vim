@@ -16,7 +16,7 @@ from vim_training.restore_model import restore_model
 from vim_training.test import test
 from vim_training.train import cosine_annealing, train
 
-REGIME = PRETRAINING
+REGIME = ENERGY
 SEED = 1
 MODEL_NAME = "WRN"
 DATASET_NAME = "CIFAR10"
@@ -56,7 +56,7 @@ test_loader = torch.utils.data.DataLoader(
 # Create model
 model = WideResNet(40, NUM_CLASSES, 2, 0.3)
 if REGIME["loading"] != "":
-    model = restore_model(model, FILE_PREFIX, os.join(SNAPSHOT_FOLDER, REGIME["loading"]))
+    model.load_state_dict(torch.load(REGIME["loading"]))
 model.cuda()
 
 optimizer = torch.optim.SGD(
@@ -64,7 +64,7 @@ optimizer = torch.optim.SGD(
     LEARNING_RATE,
     momentum=MOMENTUM,
     weight_decay=WEIGHT_DECAY,
-    nesterov=REGIME["is_using_nestrov"],
+    nesterov=True,
 )
 scheduler = torch.optim.lr_scheduler.LambdaLR(
     optimizer,

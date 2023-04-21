@@ -40,9 +40,9 @@ def train(model, train_loader_in, train_loader_out, scheduler, optimizer, loss_m
                     torch.pow(F.relu(Ec_in - loss_method["m_in"]), 2).mean()
                     + torch.pow(F.relu(loss_method["m_out"] - Ec_out), 2).mean()
                 )
-            elif loss_method["name"] == "OE":
-                output_out, penultimate_out = model(input_out)
-                loss += 0.5 * -(output_out.mean(1) - torch.logsumexp(output_in, dim=1)).mean()
+            # elif loss_method["name"] == "OE":
+            #     output_out, penultimate_out = model(input_out)
+            #     loss += 0.5 * -(output_out.mean(1) - torch.logsumexp(output_in, dim=1)).mean()
         else:
             vlogits_in, vprobs_in = vim.compute_vlogits(output_in, penultimate_in)
             loss = F.cross_entropy(vlogits_in[:, : output_in.shape[1]], label_in)

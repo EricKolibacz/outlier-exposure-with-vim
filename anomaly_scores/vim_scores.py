@@ -9,6 +9,9 @@ from torch.linalg import norm, pinv
 
 from util.get_ood_score import to_np
 
+THRESHOLD = 0.982  # how much variance should be in the principale space spanned by the pca
+# (the rest will be in orthogonal space)
+
 
 class VIM:
     """
@@ -22,8 +25,6 @@ class VIM:
     """
 
     def __init__(self, training_data_loader, model) -> None:
-        result = []
-
         # Extraction fully connected layer's weights and biases
         w, b = model.fc.weight, model.fc.bias
         # Origin of a new coordinate system of feature space to remove bias
@@ -46,8 +47,15 @@ class VIM:
 
         centered = feature_id_train - self.u
         covariance_matrix = torch.cov(centered.T)
-        _, eigen_vectors = torch.linalg.eig(covariance_matrix)
-        principal_space_perp = (eigen_vectors.real.T[:][12:]).T  # todo just taking the real values, ok?
+        eigen_values, eigen_vectors = torch.linalg.eig(covariance_matrix)
+        variance_explained = eigen_values.real / torch.sum(
+            eigen_values.real, dim=-1
+        )  # todo just taking the real values, ok?
+        cumulative_variance_explained = torch.cumsum(variance_explained, dim=-1)
+        
+        principal_space_perp = (
+            eigen_vectors.real.T[:][cumulative_variance_explained > THRESHOLD]
+        ).T  # todo just taking the real values, ok?
 
         max_logit, _ = torch.max(logit_id_train, dim=-1)
         vlogit_id_training = norm(torch.matmul(centered, principal_space_perp), axis=-1)

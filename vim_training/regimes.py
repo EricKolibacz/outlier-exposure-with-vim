@@ -13,3 +13,12 @@ ENERGY = {
     "m_in": -23,
     "m_out": -5,
 }
+
+VIM = {
+    "name": "vim",
+    "loading": "energy_ood/CIFAR/snapshots/pretrained/cifar10_wrn_pretrained_epoch_99.pt",
+    "epochs": 10,
+    "learning_rate": 0.001,
+    "m_in": 0.5,
+    "m_out": 0.5,
+}

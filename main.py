@@ -11,12 +11,12 @@ from energy_ood.CIFAR.models.wrn import WideResNet
 from energy_ood.utils.svhn_loader import SVHN
 from energy_ood.utils.validation_dataset import validation_split
 from util import TEST_TRANSFORM, TRAIN_TRANSFORM
-from vim_training.regimes import ENERGY, PRETRAINING
+from vim_training.regimes import ENERGY, PRETRAINING, VIM
 from vim_training.restore_model import restore_model
 from vim_training.test import test
 from vim_training.train import cosine_annealing, train
 
-REGIME = ENERGY
+REGIME = VIM
 SEED = 1
 MODEL_NAME = "WRN"
 DATASET_NAME = "CIFAR10"

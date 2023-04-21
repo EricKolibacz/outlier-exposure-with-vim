@@ -87,15 +87,16 @@ for epoch in range(0, EPOCHS):
     test_loss, test_accuracy = test(model, test_loader)
 
     # Save model
-    torch.save(
-        model.state_dict(),
-        os.path.join(
-            SNAPSHOT_FOLDER,
+    if (epoch + 1) % (EPOCHS / 5) == 0:  # save 5 models
+        torch.save(
+            model.state_dict(),
             os.path.join(
-                REGIME["name"],
-                f"{FILE_PREFIX}_s{SEED}_epoch_{str(epoch)}.pt",
+                SNAPSHOT_FOLDER,
+                os.path.join(
+                    REGIME["name"],
+                    f"{FILE_PREFIX}_s{SEED}_epoch_{str(epoch)}.pt",
+                ),
             ),
-        ),
-    )
+        )
     end_time = int(time.time() - begin_epoch)
     print(f" {epoch + 1:5d} | {end_time:5d} | {train_loss:10.4f} | {test_loss:9.3f} | {test_accuracy:10.2f}")

@@ -94,7 +94,7 @@ for epoch in range(0, EPOCHS):
                 SNAPSHOT_FOLDER,
                 os.path.join(
                     REGIME["name"],
-                    f"{FILE_PREFIX}_s{SEED}_epoch_{str(epoch)}.pt",
+                    f"{FILE_PREFIX}_epoch_{str(epoch)}.pt",
                 ),
             ),
         )

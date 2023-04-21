@@ -50,12 +50,12 @@ class VIM:
         eigen_values, eigen_vectors = torch.linalg.eig(covariance_matrix)
         variance_explained = eigen_values.real / torch.sum(
             eigen_values.real, dim=-1
-        )  # todo just taking the real values, ok?
+        )  # TODO just taking the real values, ok?
         cumulative_variance_explained = torch.cumsum(variance_explained, dim=-1)
-        
+
         principal_space_perp = (
             eigen_vectors.real.T[:][cumulative_variance_explained > THRESHOLD]
-        ).T  # todo just taking the real values, ok?
+        ).T  # TODO just taking the real values, ok?
 
         max_logit, _ = torch.max(logit_id_train, dim=-1)
         vlogit_id_training = norm(torch.matmul(centered, principal_space_perp), axis=-1)

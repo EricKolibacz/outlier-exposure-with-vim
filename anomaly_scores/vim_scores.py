@@ -27,7 +27,7 @@ class VIM:
         # Extraction fully connected layer's weights and biases
         w, b = model.fc.weight, model.fc.bias
         # Origin of a new coordinate system of feature space to remove bias
-        self.u = -torch.matmul(pinv(w), b)
+        self.u = -torch.matmul(pinv(w), b).detach()
 
         self.principal_space_perp, self.alpha = self._get_parameters(training_data_loader, model)
 
@@ -53,7 +53,7 @@ class VIM:
         vlogit_id_training = norm(torch.matmul(centered, principal_space_perp), axis=-1)
         alpha = torch.sum(max_logit) / torch.sum(vlogit_id_training)
 
-        return principal_space_perp, alpha
+        return principal_space_perp.detach(), alpha.detach()
 
     def compute_anomaly_score(self, output, penultimate):
         _, vprobs = self.compute_vlogits(output, penultimate)

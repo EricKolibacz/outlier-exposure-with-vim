@@ -76,7 +76,7 @@ scheduler = torch.optim.lr_scheduler.LambdaLR(
         1e-6 / LEARNING_RATE,
     ),
 )
-
+model.eval()  # enter test mode
 test_loss, test_accuracy = test(model, test_loader)
 print(f"Starting with test accuracy of {test_accuracy*100:.2f}%")
 print(f"and vanilla loss of {test_loss:.2f}")

@@ -32,7 +32,6 @@ def pretrain(model, loader, scheduler, optimizer):
 
 
 def train(model, train_loader_in, train_loader_out, scheduler, optimizer, loss_method: dict):
-    model.train()  # enter train mode
     loss_avg = 0.0
 
     if loss_method["name"] == "vim":

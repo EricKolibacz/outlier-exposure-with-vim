@@ -6,7 +6,6 @@ import torch.nn.functional as F
 
 # test function
 def test(model, loader):
-    model.eval()
     loss_avg = 0.0
     correct = 0
     with torch.no_grad():

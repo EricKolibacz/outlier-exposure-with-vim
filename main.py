@@ -27,6 +27,7 @@ FILE_PREFIX = f"{DATASET_NAME}_{MODEL_NAME}"
 
 EPOCHS = REGIME["epochs"]
 BATCH_SIZE = 128
+BATCH_SIZE_TEST = 200
 OOD_BATCH_SIZE = 256
 LEARNING_RATE = REGIME["learning_rate"]
 MOMENTUM = 0.9
@@ -35,8 +36,8 @@ WEIGHT_DECAY = 0.0005
 NUM_CLASSES = 10
 
 torch.manual_seed(SEED)
-torch.cuda.manual_seed(SEED)
 np.random.seed(SEED)
+torch.cuda.manual_seed(SEED)
 
 train_data_in = datasets.CIFAR10(f"{DATA_FOLDER}/cifar10", train=True, transform=TRAIN_TRANSFORM)
 test_data = datasets.CIFAR10(f"{DATA_FOLDER}/cifar10", train=False, transform=TEST_TRANSFORM)
@@ -50,7 +51,7 @@ train_loader_out = torch.utils.data.DataLoader(
     ood_data, batch_size=OOD_BATCH_SIZE, shuffle=False, num_workers=2, pin_memory=True
 )
 test_loader = torch.utils.data.DataLoader(
-    test_data, batch_size=BATCH_SIZE, shuffle=False, num_workers=2, pin_memory=True
+    test_data, batch_size=BATCH_SIZE_TEST, shuffle=False, num_workers=2, pin_memory=True
 )
 
 # Create model

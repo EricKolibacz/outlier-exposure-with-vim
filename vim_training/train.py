@@ -11,6 +11,26 @@ def cosine_annealing(step, total_steps, lr_max, lr_min):
     return lr_min + (lr_max - lr_min) * 0.5 * (1 + np.cos(step / total_steps * np.pi))
 
 
+def pretrain(model, loader, scheduler, optimizer):
+    loss_avg = 0.0
+    for data, label in loader:
+        data, label = data.cuda(), label.cuda()
+
+        # forward
+        output, _ = model(data)
+
+        scheduler.step()
+        optimizer.zero_grad()
+        loss = F.cross_entropy(output, label)
+        loss.backward(retain_graph=True)
+        optimizer.step()
+
+        # exponential moving average
+        loss_avg = loss_avg * 0.8 + float(loss) * 0.2
+
+    return loss_avg
+
+
 def train(model, train_loader_in, train_loader_out, scheduler, optimizer, loss_method: dict):
     model.train()  # enter train mode
     loss_avg = 0.0

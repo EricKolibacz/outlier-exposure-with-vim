@@ -14,9 +14,9 @@ from util import TEST_TRANSFORM, TRAIN_TRANSFORM
 from vim_training.regimes import ENERGY, PRETRAINING, VIM
 from vim_training.restore_model import restore_model
 from vim_training.test import test
-from vim_training.train import cosine_annealing, train
+from vim_training.train import cosine_annealing, pretrain, train
 
-REGIME = VIM
+REGIME = PRETRAINING
 SEED = 1
 MODEL_NAME = "WRN"
 DATASET_NAME = "CIFAR10"
@@ -81,8 +81,12 @@ print(f" {'Epoch':<5s} |  Time | Train Loss | Test Loss | Test Accuracy")
 # Main loop
 for epoch in range(0, EPOCHS):
     begin_epoch = time.time()
-
-    model, train_loss = train(model, train_loader_in, train_loader_out, scheduler, optimizer, REGIME)
+    model.train()  # enter train mode
+    if REGIME["name"] == "default":
+        train_loss = pretrain(model, train_loader_in, scheduler, optimizer)
+    else:
+        train_loss = train(model, train_loader_in, train_loader_out, scheduler, optimizer, REGIME)
+    model.eval()  # enter test mode
     test_loss, test_accuracy = test(model, test_loader)
 
     # Save model

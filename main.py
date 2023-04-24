@@ -89,6 +89,16 @@ for epoch in range(0, EPOCHS):
     model.train()  # enter train mode
     if REGIME["name"] == "default":
         train_loss = pretrain(model, train_loader_in, scheduler, optimizer)
+    elif REGIME["name"] == "energy":
+        train_loss = train_with_energy(
+            model,
+            train_loader_in,
+            train_loader_out,
+            scheduler,
+            optimizer,
+            REGIME["m_in"],
+            REGIME["m_out"],
+        )
     else:
         train_loss = train(model, train_loader_in, train_loader_out, scheduler, optimizer, REGIME)
     model.eval()  # enter test mode

@@ -31,6 +31,47 @@ def pretrain(model, loader, scheduler, optimizer):
     return loss_avg
 
 
+def train_with_energy(
+    model,
+    train_loader_in,
+    train_loader_out,
+    scheduler,
+    optimizer,
+    m_in: float,
+    m_out: float,
+):
+    loss_avg = 0.0
+
+    # start at a random point of the outlier dataset; this induces more randomness without obliterating locality
+    train_loader_out.dataset.offset = np.random.randint(len(train_loader_out.dataset))
+    for in_set, out_set in zip(train_loader_in, train_loader_out):
+        input_in, label_in = in_set
+        input_out, _ = out_set
+
+        input_in, label_in, input_out = input_in.cuda(), label_in.cuda(), input_out.cuda()
+
+        # forward
+        output_in, _ = model(input_in)
+        output_out, _ = model(input_out)
+
+        scheduler.step()
+        optimizer.zero_grad()
+
+        Ec_in = -torch.logsumexp(output_in, dim=1)
+        Ec_out = -torch.logsumexp(output_out, dim=1)
+        loss = F.cross_entropy(output_in, label_in) + 0.1 * (
+            torch.pow(F.relu(Ec_in - m_in), 2).mean() + torch.pow(F.relu(m_out - Ec_out), 2).mean()
+        )
+
+        loss.backward()
+        optimizer.step()
+
+        # exponential moving average
+        loss_avg = loss_avg * 0.8 + float(loss) * 0.2
+
+    return loss_avg
+
+
 def train(model, train_loader_in, train_loader_out, scheduler, optimizer, loss_method: dict):
     loss_avg = 0.0
 

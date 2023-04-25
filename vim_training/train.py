@@ -19,11 +19,12 @@ def pretrain(model, loader, scheduler, optimizer):
         # forward
         output, _ = model(data)
 
-        scheduler.step()
-        optimizer.zero_grad()
         loss = F.cross_entropy(output, label)
-        loss.backward(retain_graph=True)
+
+        optimizer.zero_grad()
+        loss.backward()
         optimizer.step()
+        scheduler.step()
 
         # exponential moving average
         loss_avg = loss_avg * 0.8 + float(loss) * 0.2
@@ -54,17 +55,15 @@ def train_with_energy(
         output_in, _ = model(input_in)
         output_out, _ = model(input_out)
 
-        scheduler.step()
-        optimizer.zero_grad()
-
         Ec_in = -torch.logsumexp(output_in, dim=1)
         Ec_out = -torch.logsumexp(output_out, dim=1)
-        loss = F.cross_entropy(output_in, label_in) + 0.1 * (
-            torch.pow(F.relu(Ec_in - m_in), 2).mean() + torch.pow(F.relu(m_out - Ec_out), 2).mean()
-        )
+        loss = F.cross_entropy(output_in, label_in)
+        loss += 0.1 * (torch.pow(F.relu(Ec_in - m_in), 2).mean() + torch.pow(F.relu(m_out - Ec_out), 2).mean())
 
+        optimizer.zero_grad()
         loss.backward()
         optimizer.step()
+        scheduler.step()
 
         # exponential moving average
         loss_avg = loss_avg * 0.8 + float(loss) * 0.2
@@ -73,10 +72,11 @@ def train_with_energy(
 
 
 def train(model, train_loader_in, train_loader_out, scheduler, optimizer, loss_method: dict):
+    raise ValueError
     loss_avg = 0.0
 
     if loss_method["name"] == "vim":
-        vim = VIM(train_loader_in, model)
+        model.update_vim_parameters(train_loader_in)
 
     # start at a random point of the outlier dataset; this induces more randomness without obliterating locality
     train_loader_out.dataset.offset = np.random.randint(len(train_loader_out.dataset))
@@ -87,7 +87,7 @@ def train(model, train_loader_in, train_loader_out, scheduler, optimizer, loss_m
         input_in, label_in, input_out = input_in.cuda(), label_in.cuda(), input_out.cuda()
 
         # forward
-        output_in, penultimate_in = model(input_in)
+        output_in, _ = model(input_in)
 
         scheduler.step()
         optimizer.zero_grad()
@@ -107,20 +107,21 @@ def train(model, train_loader_in, train_loader_out, scheduler, optimizer, loss_m
             #     output_out, penultimate_out = model(input_out)
             #     loss += 0.5 * -(output_out.mean(1) - torch.logsumexp(output_in, dim=1)).mean()
         else:
-            vlogits_in, vprobs_in = vim.compute_vlogits(output_in, penultimate_in)
-            loss = F.cross_entropy(vlogits_in[:, : output_in.shape[1]], label_in)
+            loss = F.cross_entropy(output_in[:, :-1], label_in)
 
-            output_out, penultimate_out = model(input_out)
-            _, vprobs_out = vim.compute_vlogits(output_out, penultimate_out)
-            loss += 0.1 * (
+            vprobs_in = torch.nn.functional.softmax(output_in, dim=-1)
+            output_out, _ = model(input_out)
+            vprobs_out = torch.nn.functional.softmax(output_out, dim=-1)
+
+            loss += 0.00 * (
                 torch.pow(F.relu(vprobs_in[:, -1] - loss_method["m_in"]), 2).mean()
                 + torch.pow(F.relu(loss_method["m_out"] - vprobs_out[:, -1]), 2).mean()
             )
 
-        loss.backward()
+        loss.backward(retain_graph=True)
         optimizer.step()
 
         # exponential moving average
         loss_avg = loss_avg * 0.8 + float(loss) * 0.2
 
-    return model, loss_avg
+    return loss_avg

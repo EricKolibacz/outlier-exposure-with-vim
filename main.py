@@ -17,6 +17,7 @@ from vim_training.restore_model import restore_model
 from vim_training.test import test
 from vim_training.train import cosine_annealing, pretrain, train
 
+REGIME = ENERGY
 OOD_DATA = "tiny"
 SEED = 1
 MODEL_NAME = "WRN"

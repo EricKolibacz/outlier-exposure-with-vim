@@ -41,8 +41,8 @@ torch.cuda.manual_seed(SEED)
 
 train_data_in = datasets.CIFAR10(f"{DATA_FOLDER}/cifar10", train=True, transform=TRAIN_TRANSFORM)
 test_data = datasets.CIFAR10(f"{DATA_FOLDER}/cifar10", train=False, transform=TEST_TRANSFORM)
-train_data_in, val_data = validation_split(train_data_in, val_share=0.1)
-ood_data = SVHN(root=f"{DATA_FOLDER}/svhn/", split="test", transform=TEST_TRANSFORM, download=False)
+if REGIME["calibration"]:
+    train_data_in, val_data = validation_split(train_data_in, val_share=0.1)
 
 train_loader_in = torch.utils.data.DataLoader(
     train_data_in, batch_size=BATCH_SIZE, shuffle=True, num_workers=2, pin_memory=True

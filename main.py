@@ -18,7 +18,9 @@ from vim_training.test import test
 from vim_training.train import cosine_annealing, pretrain, train, train_with_energy
 
 REGIME = ENERGY
+print(REGIME)
 OOD_DATA = "tiny"
+print(OOD_DATA)
 SEED = 1
 MODEL_NAME = "WRN"
 DATASET_NAME = "CIFAR10"

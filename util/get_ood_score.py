@@ -52,7 +52,14 @@ def get_ood_scores(loader, model, anomaly_score_calculator, ood_num_examples, in
     return concat(_score)[:ood_num_examples].copy()
 
 
-def get_ood_score_for_multiple_datasets(loaders, model, anomaly_score_calculator, is_using="last", verbose=False):
+def get_ood_score_for_multiple_datasets(
+    loaders,
+    model,
+    anomaly_score_calculator,
+    is_using="last",
+    verbose=False,
+    runs=1,
+):
     ood_num_examples = len(loaders[0][1].dataset) // 5
 
     if verbose:
@@ -71,8 +78,8 @@ def get_ood_score_for_multiple_datasets(loaders, model, anomaly_score_calculator
     for i in range(1, len(loaders)):
         if verbose:
             print(f"OOD dataset: {loaders[i][0]}")
-        aurocs = []
-        for _ in range(5):  # 5 runs to average score
+        aurocs, auprs, fprs = [], [], []
+        for _ in range(runs):
             out_score = get_ood_scores(
                 loaders[i][1],
                 model,
@@ -80,11 +87,10 @@ def get_ood_score_for_multiple_datasets(loaders, model, anomaly_score_calculator
                 ood_num_examples,
                 is_using=is_using,
             )
-            auroc, _, _ = get_measures(out_score[:], in_score[:])
+            auroc, aupr, fpr = get_measures(out_score[:], in_score[:])
             aurocs.append([auroc])
-        results.append(np.mean(aurocs))
-
-    average = sum(results) / len(results)
-    results.append(average)
+            auprs.append([aupr])
+            fprs.append([fpr])
+        results.append([aurocs, auprs, fprs])
 
     return results

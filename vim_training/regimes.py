@@ -11,7 +11,7 @@ ENERGY = {
     "loading": "energy_ood/CIFAR/snapshots/pretrained/cifar10_wrn_pretrained_epoch_99.pt",
     "epochs": 10,
     "learning_rate": 0.001,
-    "m_in": -15,  # as higher as less effect
+    "m_in": -23,  # as higher as less effect
     "m_out": -5,  # as lower as less effect
     "calibration": False,
 }

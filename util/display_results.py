@@ -8,7 +8,7 @@ import math
 def get_results_max(all_anomaly_results, model_name="normal"):
     all_anomaly_results[model_name]["max"] = [0, 0, 0, 0, 0]
     for key in all_anomaly_results[model_name].keys():
-        if key != "max":
+        if key != "max" and key != "test_acc":
             index = 0
             for score in all_anomaly_results[model_name][key]:
                 all_anomaly_results[model_name]["max"][index] = max(
@@ -19,7 +19,8 @@ def get_results_max(all_anomaly_results, model_name="normal"):
 
 def compare_all_results(all_anomaly_results, dataloaders: dict):
     for model_name in all_anomaly_results:
-        to_be_printed = " " * (25 - len(model_name)) + model_name
+        accuracy_str = f" ({100-all_anomaly_results[model_name]['test_acc']*100:.2f}%)"
+        to_be_printed = " " * (25 - len(model_name) - len(accuracy_str)) + model_name + accuracy_str
         dataset_names = [name for name, _ in dataloaders[1:]] + ["AVG"]
         for name in dataset_names:
             to_be_printed += " | " + " " * (6 - math.ceil(len(name) / 2)) + name + " " * (6 - math.floor(len(name) / 2))
@@ -29,7 +30,7 @@ def compare_all_results(all_anomaly_results, dataloaders: dict):
 
         get_results_max(all_anomaly_results, model_name=model_name)
         for key in all_anomaly_results[model_name].keys():
-            if key != "max":
+            if key != "max" and key != "test_acc":
                 to_be_printed = " " * (25 - len(key)) + key
                 index = 0
                 for result in all_anomaly_results[model_name][key]:

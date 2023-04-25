@@ -3,10 +3,14 @@ Copied and adapted from the jupyter notebook submission on anomaly detection
 of the Intro to ML Safety course from the Center of AI Safety"""
 
 
-import numpy as np
 import torch
-from numpy.linalg import norm, pinv
 from scipy.special import logsumexp
+from torch.linalg import norm, pinv
+
+from util.get_ood_score import to_np
+
+THRESHOLD = 0.982  # how much variance should be in the principale space spanned by the pca
+# (the rest will be in orthogonal space)
 
 
 class VIM:
@@ -21,12 +25,10 @@ class VIM:
     """
 
     def __init__(self, training_data_loader, model) -> None:
-        result = []
-
         # Extraction fully connected layer's weights and biases
-        w, b = model.fc.weight.cpu().detach().numpy(), model.fc.bias.cpu().detach().numpy()
+        w, b = model.fc.weight, model.fc.bias
         # Origin of a new coordinate system of feature space to remove bias
-        self.u = -np.matmul(pinv(w), b)
+        self.u = -torch.matmul(pinv(w), b).detach()
 
         self.principal_space_perp, self.alpha = self._get_parameters(training_data_loader, model)
 
@@ -40,26 +42,39 @@ class VIM:
         logit = result[0]  # Logits (values before softmax)
         penultimate = result[1]  # Features/Penultimate (values before fully connected layer)
 
-        logit_id_train = logit.cpu().detach().numpy().squeeze()
-        feature_id_train = penultimate.cpu().detach().numpy().squeeze()
+        logit_id_train = logit
+        feature_id_train = penultimate
 
         centered = feature_id_train - self.u
-        covariance_matrix = np.cov(centered.T)
-        _, eigen_vectors = np.linalg.eig(covariance_matrix)
-        principal_space_perp = (eigen_vectors.T[:][12:]).T
+        covariance_matrix = torch.cov(centered.T)
+        eigen_values, eigen_vectors = torch.linalg.eig(covariance_matrix)
+        variance_explained = eigen_values.real / torch.sum(
+            eigen_values.real, dim=-1
+        )  # TODO just taking the real values, ok?
+        cumulative_variance_explained = torch.cumsum(variance_explained, dim=-1)
 
-        vlogit_id_training = norm(np.matmul(centered, principal_space_perp), axis=-1)
-        alpha = np.sum(logit_id_train.max(axis=-1)) / np.sum(vlogit_id_training)
+        principal_space_perp = (
+            eigen_vectors.real.T[:][cumulative_variance_explained > THRESHOLD]
+        ).T  # TODO just taking the real values, ok?
 
-        return principal_space_perp, alpha
+        max_logit, _ = torch.max(logit_id_train, dim=-1)
+        vlogit_id_training = norm(torch.matmul(centered, principal_space_perp), axis=-1)
+        alpha = torch.sum(max_logit) / torch.sum(vlogit_id_training)
+
+        return principal_space_perp.detach(), alpha.detach()
 
     def compute_anomaly_score(self, output, penultimate):
-        logit_id_val = output.cpu().detach().numpy().squeeze()
-        feature_id_val = penultimate.cpu().detach().numpy().squeeze()
+        _, vprobs = self.compute_vlogits(output, penultimate)
+        return to_np(vprobs[:, -1])
 
-        vlogit = self.alpha * norm(np.matmul(feature_id_val - self.u, self.principal_space_perp), axis=-1)
-        energy = logsumexp(logit_id_val, axis=-1)
-
-        score_id = vlogit - energy
-
-        return score_id
+    def compute_vlogits(self, output, penultimate):
+        vlogit = self.alpha * norm(
+            torch.matmul(
+                penultimate - self.u,
+                self.principal_space_perp,
+            ),
+            axis=-1,
+        )
+        vlogits = torch.hstack([output, torch.unsqueeze(vlogit, dim=1)])
+        vprobs = torch.nn.functional.softmax(vlogits, dim=-1)
+        return vlogits, vprobs

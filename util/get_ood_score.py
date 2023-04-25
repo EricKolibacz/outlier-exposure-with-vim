@@ -71,15 +71,18 @@ def get_ood_score_for_multiple_datasets(loaders, model, anomaly_score_calculator
     for i in range(1, len(loaders)):
         if verbose:
             print(f"OOD dataset: {loaders[i][0]}")
-        out_score = get_ood_scores(
-            loaders[i][1],
-            model,
-            anomaly_score_calculator,
-            ood_num_examples,
-            is_using=is_using,
-        )
-        auroc, _, _ = get_measures(out_score[:], in_score[:])
-        results.append(auroc)
+        aurocs = []
+        for _ in range(5):  # 5 runs to average score
+            out_score = get_ood_scores(
+                loaders[i][1],
+                model,
+                anomaly_score_calculator,
+                ood_num_examples,
+                is_using=is_using,
+            )
+            auroc, _, _ = get_measures(out_score[:], in_score[:])
+            aurocs.append([auroc])
+        results.append(np.mean(aurocs))
 
     average = sum(results) / len(results)
     results.append(average)

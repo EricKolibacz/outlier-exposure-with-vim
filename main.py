@@ -15,7 +15,7 @@ from util import TEST_TRANSFORM, TINY_TRANSFORM, TRAIN_TRANSFORM
 from vim_training.regimes import ENERGY, PRETRAINING, VANILLA_FT, VIM
 from vim_training.restore_model import restore_model
 from vim_training.test import test
-from vim_training.train import cosine_annealing, pretrain, train
+from vim_training.train import cosine_annealing, pretrain, train, train_with_energy
 
 REGIME = ENERGY
 OOD_DATA = "tiny"

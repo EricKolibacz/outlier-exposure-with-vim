@@ -57,8 +57,10 @@ else:
 
 train_loader_in = torch.utils.data.DataLoader(
     train_data_in, batch_size=BATCH_SIZE, shuffle=True, num_workers=4, pin_memory=True
+    train_data_in, batch_size=BATCH_SIZE, shuffle=True, num_workers=4, pin_memory=True
 )
 train_loader_out = torch.utils.data.DataLoader(
+    ood_data, batch_size=OOD_BATCH_SIZE, shuffle=False, num_workers=4, pin_memory=True
     ood_data, batch_size=OOD_BATCH_SIZE, shuffle=False, num_workers=4, pin_memory=True
 )
 test_loader = torch.utils.data.DataLoader(

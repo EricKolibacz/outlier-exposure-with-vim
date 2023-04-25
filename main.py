@@ -9,14 +9,15 @@ from torchvision import datasets
 
 from energy_ood.CIFAR.models.wrn import WideResNet
 from energy_ood.utils.svhn_loader import SVHN
+from energy_ood.utils.tinyimages_80mn_loader import TinyImages
 from energy_ood.utils.validation_dataset import validation_split
-from util import TEST_TRANSFORM, TRAIN_TRANSFORM
+from util import TEST_TRANSFORM, TINY_TRANSFORM, TRAIN_TRANSFORM
 from vim_training.regimes import ENERGY, PRETRAINING, VANILLA_FT, VIM
 from vim_training.restore_model import restore_model
 from vim_training.test import test
 from vim_training.train import cosine_annealing, pretrain, train
 
-REGIME = PRETRAINING
+OOD_DATA = "tiny"
 SEED = 1
 MODEL_NAME = "WRN"
 DATASET_NAME = "CIFAR10"
@@ -43,6 +44,12 @@ train_data_in = datasets.CIFAR10(f"{DATA_FOLDER}/cifar10", train=True, transform
 test_data = datasets.CIFAR10(f"{DATA_FOLDER}/cifar10", train=False, transform=TEST_TRANSFORM)
 if REGIME["calibration"]:
     train_data_in, val_data = validation_split(train_data_in, val_share=0.1)
+if OOD_DATA == "svhn":
+    ood_data = SVHN(root=f"{DATA_FOLDER}/svhn/", split="test", transform=TEST_TRANSFORM, download=False)
+elif OOD_DATA == "tiny":
+    ood_data = TinyImages(transform=TINY_TRANSFORM, folder="data/TinyImages")
+else:
+    raise ValueError(f"The dataset {OOD_DATA} is not known.")
 
 train_loader_in = torch.utils.data.DataLoader(
     train_data_in, batch_size=BATCH_SIZE, shuffle=True, num_workers=2, pin_memory=True

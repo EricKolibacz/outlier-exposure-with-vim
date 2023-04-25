@@ -55,13 +55,13 @@ else:
     raise ValueError(f"The dataset {OOD_DATA} is not known.")
 
 train_loader_in = torch.utils.data.DataLoader(
-    train_data_in, batch_size=BATCH_SIZE, shuffle=True, num_workers=2, pin_memory=True
+    train_data_in, batch_size=BATCH_SIZE, shuffle=True, num_workers=4, pin_memory=True
 )
 train_loader_out = torch.utils.data.DataLoader(
-    ood_data, batch_size=OOD_BATCH_SIZE, shuffle=False, num_workers=2, pin_memory=True
+    ood_data, batch_size=OOD_BATCH_SIZE, shuffle=False, num_workers=4, pin_memory=True
 )
 test_loader = torch.utils.data.DataLoader(
-    test_data, batch_size=BATCH_SIZE_TEST, shuffle=False, num_workers=2, pin_memory=True
+    test_data, batch_size=BATCH_SIZE, shuffle=False, num_workers=4, pin_memory=True
 )
 
 # Create model

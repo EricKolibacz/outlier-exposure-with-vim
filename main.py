@@ -12,6 +12,7 @@ from energy_ood.utils.svhn_loader import SVHN
 from energy_ood.utils.tinyimages_80mn_loader import TinyImages
 from energy_ood.utils.validation_dataset import validation_split
 from util import TEST_TRANSFORM, TINY_TRANSFORM, TRAIN_TRANSFORM
+from vim_training.model import WideResVIMNet
 from vim_training.regimes import ENERGY, PRETRAINING, VANILLA_FT, VIM
 from vim_training.restore_model import restore_model
 from vim_training.test import test
@@ -55,17 +56,20 @@ else:
     raise ValueError(f"The dataset {OOD_DATA} is not known.")
 
 train_loader_in = torch.utils.data.DataLoader(
-    train_data_in, batch_size=BATCH_SIZE, shuffle=True, num_workers=2, pin_memory=True
+    train_data_in, batch_size=BATCH_SIZE, shuffle=True, num_workers=4, pin_memory=True
 )
 train_loader_out = torch.utils.data.DataLoader(
-    ood_data, batch_size=OOD_BATCH_SIZE, shuffle=False, num_workers=2, pin_memory=True
+    ood_data, batch_size=OOD_BATCH_SIZE, shuffle=False, num_workers=4, pin_memory=True
 )
 test_loader = torch.utils.data.DataLoader(
-    test_data, batch_size=BATCH_SIZE_TEST, shuffle=False, num_workers=2, pin_memory=True
+    test_data, batch_size=BATCH_SIZE_TEST, shuffle=False, num_workers=4, pin_memory=True
 )
 
 # Create model
-model = WideResNet(40, NUM_CLASSES, 2, 0.3)
+if REGIME["name"] == "vim":
+    model = WideResVIMNet(40, NUM_CLASSES, train_loader_in, 2, 0.3)
+else:
+    model = WideResNet(40, NUM_CLASSES, 2, 0.3)
 if REGIME["loading"] != "":
     model.load_state_dict(torch.load(REGIME["loading"]))
 model.cuda()

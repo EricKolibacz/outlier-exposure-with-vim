@@ -46,18 +46,18 @@ def train_with_energy(
     # start at a random point of the outlier dataset; this induces more randomness without obliterating locality
     train_loader_out.dataset.offset = np.random.randint(len(train_loader_out.dataset))
     for in_set, out_set in zip(train_loader_in, train_loader_out):
-        input_in, label_in = in_set
-        input_out, _ = out_set
+        data = torch.cat((in_set[0], out_set[0]), 0)
+        target = in_set[1]
 
-        input_in, label_in, input_out = input_in.cuda(), label_in.cuda(), input_out.cuda()
+        data, target = data.cuda(), target.cuda()
 
         # forward
-        output_in, _ = model(input_in)
-        output_out, _ = model(input_out)
+        x, _ = model(data)
 
-        Ec_in = -torch.logsumexp(output_in, dim=1)
-        Ec_out = -torch.logsumexp(output_out, dim=1)
-        loss = F.cross_entropy(output_in, label_in)
+        loss = F.cross_entropy(x[: len(in_set[0])], target)
+
+        Ec_out = -torch.logsumexp(x[len(in_set[0]) :], dim=1)
+        Ec_in = -torch.logsumexp(x[: len(in_set[0])], dim=1)
         loss += 0.1 * (torch.pow(F.relu(Ec_in - m_in), 2).mean() + torch.pow(F.relu(m_out - Ec_out), 2).mean())
 
         optimizer.zero_grad()

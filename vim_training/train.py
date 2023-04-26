@@ -103,7 +103,7 @@ def train_with_vim(
         )
 
         optimizer.zero_grad()
-        loss.backward(retain_graph=True)
+        loss.backward()
         optimizer.step()
         scheduler.step()
 

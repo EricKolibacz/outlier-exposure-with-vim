@@ -30,11 +30,11 @@ def test_correct_vector_norm():
     data = torch.from_numpy(DATA)
     eig_space_computed = compute_orthogonal_space(data.float(), 0.0).numpy()
 
-    space = EIG_SPACE.copy()
+    space = eig_space_computed.copy()
     space[1, :] = 0
-    orthogonal_space = EIG_SPACE.copy()
+    orthogonal_space = eig_space_computed.copy()
     orthogonal_space[0, :] = 0
     norm_pca = np.matmul(DATA, space.T)
     norm_pca_orthogonal = np.matmul(DATA, orthogonal_space.T)
-    
+
     np.testing.assert_array_less(np.linalg.norm(norm_pca_orthogonal, axis=1), np.linalg.norm(norm_pca, axis=1))

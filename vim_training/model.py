@@ -118,3 +118,15 @@ class WideResVIMNet(nn.Module):
             self.alpha.cuda(),
         )
         return self._apply(lambda t: t.cuda(device))
+
+
+def compute_orthogonal_space(matrix, threshold):
+    pca = PCA(n_components=None).fit(matrix)
+
+    cumulative_explained_variance = torch.cumsum(pca.explained_variance_ratio_, dim=-1)
+
+    eigen_vectors = pca.components_.detach().clone()
+
+    eigen_vectors[cumulative_explained_variance <= threshold, :] = 0
+
+    return eigen_vectors

@@ -1,10 +1,9 @@
-"""Module which includes the virtual logit matching (vim) idea. 
-Copied and adapted from the jupyter notebook submission on anomaly detection 
+"""Module which includes the virtual logit matching (vim) idea.
+Copied and adapted from the jupyter notebook submission on anomaly detection
 of the Intro to ML Safety course from the Center of AI Safety"""
 
 
 import torch
-from scipy.special import logsumexp
 from torch.linalg import norm, pinv
 
 from util.get_ood_score import to_np

@@ -13,12 +13,19 @@ from energy_ood.utils.tinyimages_80mn_loader import TinyImages
 from energy_ood.utils.validation_dataset import validation_split
 from util import TEST_TRANSFORM, TINY_TRANSFORM, TRAIN_TRANSFORM
 from vim_training.model import WideResVIMNet
-from vim_training.regimes import ENERGY, PRETRAIN_VIM, PRETRAINING, TRAIN_WITH_VIM, VANILLA_FT, VIM_FT
+from vim_training.regimes import ENERGY, ENERGY_VIM_FT, PRETRAIN_VIM, PRETRAINING, TRAIN_WITH_VIM, VANILLA_FT, VIM_FT
 from vim_training.restore_model import restore_model
 from vim_training.testing import test
-from vim_training.train import cosine_annealing, pretrain, train, train_with_energy, train_with_vim
+from vim_training.train import (
+    cosine_annealing,
+    pretrain,
+    train,
+    train_with_energy,
+    train_with_energy_and_vim,
+    train_with_vim,
+)
 
-REGIME = VIM_FT
+REGIME = ENERGY_VIM_FT
 print(REGIME)
 OOD_DATA = "tiny"
 print(OOD_DATA)
@@ -128,6 +135,16 @@ for epoch in range(0, EPOCHS):
             optimizer,
             REGIME["m_in"],
             REGIME["m_out"],
+        )
+    elif REGIME["name"] == "energy_vim_ft":
+        train_loss = train_with_energy_and_vim(
+            model,
+            train_loader_in,
+            train_loader_out,
+            scheduler,
+            optimizer,
+            REGIME["m_ins"],
+            REGIME["m_outs"],
         )
     else:
         train_loss = train(model, train_loader_in, train_loader_out, scheduler, optimizer, REGIME)

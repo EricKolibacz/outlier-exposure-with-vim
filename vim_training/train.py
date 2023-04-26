@@ -71,6 +71,48 @@ def train_with_energy(
     return loss_avg
 
 
+def train_with_vim(
+    model,
+    train_loader_in,
+    train_loader_out,
+    scheduler,
+    optimizer,
+    m_in: float,
+    m_out: float,
+):
+    loss_avg = 0.0
+    model.update_vim_parameters(train_loader_in)
+    # start at a random point of the outlier dataset; this induces more randomness without obliterating locality
+    train_loader_out.dataset.offset = np.random.randint(len(train_loader_out.dataset))
+    for in_set, out_set in zip(train_loader_in, train_loader_out):
+        data = torch.cat((in_set[0], out_set[0]), 0)
+        target = in_set[1]
+
+        data, target = data.cuda(), target.cuda()
+
+        # forward
+        x, _ = model(data)
+
+        loss = F.cross_entropy(x[: len(in_set[0]), :-1], target)
+
+        vprobs = torch.nn.functional.softmax(x, dim=-1)
+
+        loss += 10 * (
+            torch.pow(F.relu(vprobs[: len(in_set[0]), -1] - m_in), 2).mean()
+            + torch.pow(F.relu(m_out - vprobs[len(in_set[0]) :, -1]), 2).mean()
+        )
+
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+        scheduler.step()
+
+        # exponential moving average
+        loss_avg = loss_avg * 0.8 + float(loss) * 0.2
+
+    return loss_avg
+
+
 def train(model, train_loader_in, train_loader_out, scheduler, optimizer, loss_method: dict):
     raise ValueError
     loss_avg = 0.0

@@ -12,12 +12,13 @@ from energy_ood.utils.svhn_loader import SVHN
 from energy_ood.utils.tinyimages_80mn_loader import TinyImages
 from energy_ood.utils.validation_dataset import validation_split
 from util import TEST_TRANSFORM, TINY_TRANSFORM, TRAIN_TRANSFORM
-from vim_training.regimes import ENERGY, PRETRAINING, VANILLA_FT, VIM
+from vim_training.model import WideResVIMNet
+from vim_training.regimes import ENERGY, PRETRAIN_VIM, PRETRAINING, TRAIN_WITH_VIM, VANILLA_FT, VIM_FT
 from vim_training.restore_model import restore_model
-from vim_training.test import test
-from vim_training.train import cosine_annealing, pretrain, train, train_with_energy
+from vim_training.testing import test
+from vim_training.train import cosine_annealing, pretrain, train, train_with_energy, train_with_vim
 
-REGIME = ENERGY
+REGIME = VIM_FT
 print(REGIME)
 OOD_DATA = "tiny"
 print(OOD_DATA)
@@ -61,11 +62,17 @@ train_loader_out = torch.utils.data.DataLoader(
     ood_data, batch_size=OOD_BATCH_SIZE, shuffle=False, num_workers=4, pin_memory=True
 )
 test_loader = torch.utils.data.DataLoader(
-    test_data, batch_size=BATCH_SIZE, shuffle=False, num_workers=4, pin_memory=True
+    test_data, batch_size=BATCH_SIZE_TEST, shuffle=False, num_workers=4, pin_memory=True
 )
 
 # Create model
-model = WideResNet(40, NUM_CLASSES, 2, 0.3)
+if "vim" in REGIME["name"]:
+    print("Using WideResVIMNet")
+    is_using_vim = "pretrain" not in REGIME["name"]
+    print(f"Is using VIM? {is_using_vim}")
+    model = WideResVIMNet(40, NUM_CLASSES, train_loader_in, 2, 0.3, is_using_vim=is_using_vim)
+else:
+    model = WideResNet(40, NUM_CLASSES, 2, 0.3)
 if REGIME["loading"] != "":
     model.load_state_dict(torch.load(REGIME["loading"]))
 model.cuda()
@@ -97,10 +104,23 @@ print(f" {'Epoch':<5s} |  Time | Train Loss | Test Loss | Test Accuracy")
 for epoch in range(0, EPOCHS):
     begin_epoch = time.time()
     model.train()  # enter train mode
-    if REGIME["name"] == "default":
+    if REGIME["name"] == "default" or REGIME["name"] == "pretrain_vim":
+        train_loss = pretrain(model, train_loader_in, scheduler, optimizer)
+    elif REGIME["name"] == "train_with_vim":
+        model.update_vim_parameters(train_loader_in)
         train_loss = pretrain(model, train_loader_in, scheduler, optimizer)
     elif REGIME["name"] == "energy":
         train_loss = train_with_energy(
+            model,
+            train_loader_in,
+            train_loader_out,
+            scheduler,
+            optimizer,
+            REGIME["m_in"],
+            REGIME["m_out"],
+        )
+    elif REGIME["name"] == "vim_ft":
+        train_loss = train_with_vim(
             model,
             train_loader_in,
             train_loader_out,

@@ -14,6 +14,7 @@ def test(model, loader):
 
             # forward
             output, _ = model(data)
+            output = output[:, :10]  # TODO this is hardcode, ohoho!!
 
             loss = F.cross_entropy(output, label)
 

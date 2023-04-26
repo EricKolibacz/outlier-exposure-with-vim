@@ -1,13 +1,13 @@
-"""Module which includes the virtual logit matching (vim) idea. 
-Copied and adapted from the jupyter notebook submission on anomaly detection 
+"""Module which includes the virtual logit matching (vim) idea.
+Copied and adapted from the jupyter notebook submission on anomaly detection
 of the Intro to ML Safety course from the Center of AI Safety"""
 
 
 import torch
-from scipy.special import logsumexp
 from torch.linalg import norm, pinv
 
 from util.get_ood_score import to_np
+from vim_training.model import WideResVIMNet
 
 THRESHOLD = 0.982  # how much variance should be in the principale space spanned by the pca
 # (the rest will be in orthogonal space)
@@ -26,7 +26,10 @@ class VIM:
 
     def __init__(self, training_data_loader, model) -> None:
         # Extraction fully connected layer's weights and biases
-        w, b = model.fc.weight, model.fc.bias
+        if isinstance(model, WideResVIMNet):
+            w, b = model.vim.fc.weight, model.vim.fc.bias
+        else:
+            w, b = model.fc.weight, model.fc.bias
         # Origin of a new coordinate system of feature space to remove bias
         self.u = -torch.matmul(pinv(w), b).detach()
 

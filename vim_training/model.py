@@ -68,7 +68,7 @@ class WideResVIMNet(nn.Module):
         out = self.relu(self.bn1(out))
         out = F.avg_pool2d(out, 8)
         out = out.view(-1, self.nChannels)
-        vlogits, out = self.vim(out)
+        vlogits = self.vim(out)
 
         return vlogits, out
 
@@ -124,7 +124,7 @@ class ViMBlock(nn.Module):
             self.alpha,
         )
         vlogits = torch.cat([out, torch.unsqueeze(vlogit, dim=1)], dim=1)
-        return vlogits, out
+        return vlogits
 
     def update_vim_parameters(self, penultimate):
         # Extraction fully connected layer's weights and biases

@@ -32,13 +32,14 @@ TRAIN_WITH_VIM = {
     "calibration": False,
 }
 
-VIM = {
-    "name": "vim",
-    "loading": "energy_ood/CIFAR/snapshots/pretrained/cifar10_wrn_pretrained_epoch_99.pt",
+
+VIM_FT = {
+    "name": "vim_ft",
+    "loading": "snapshots/pretrain_vim/CIFAR10_WRN_epoch_99.pt",
     "epochs": 10,
     "learning_rate": 0.001,
-    "m_in": 0.46,
-    "m_out": 0.98,
+    "m_in": 0.10,
+    "m_out": 0.90,
     "calibration": False,
 }
 

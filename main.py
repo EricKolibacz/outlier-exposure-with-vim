@@ -119,7 +119,7 @@ for epoch in range(0, EPOCHS):
             REGIME["m_in"],
             REGIME["m_out"],
         )
-    elif REGIME["name"] == "vim":
+    elif REGIME["name"] == "vim_ft":
         train_loss = train_with_vim(
             model,
             train_loader_in,

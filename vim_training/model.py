@@ -2,6 +2,7 @@
 
 import math
 
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -139,10 +140,9 @@ class ViMBlock(nn.Module):
 
         max_logit, _ = torch.max(logit_id_train, dim=-1)
         vlogit_id_training = norm(torch.matmul(centered, orthogonal_space), axis=-1)
+        alpha = torch.sum(max_logit) / torch.sum(vlogit_id_training).detach()
         if not self.is_using_vim:
-            alpha = torch.zeros([1])
-        else:
-            alpha = torch.sum(max_logit) / torch.sum(vlogit_id_training).detach()
+            alpha -= torch.absolute(alpha) * 1e3  # mask alpha to approach - inf
 
         self.u = torch.nn.Parameter(u, requires_grad=False)
         self.orthogonal_space = torch.nn.Parameter(orthogonal_space, requires_grad=False)

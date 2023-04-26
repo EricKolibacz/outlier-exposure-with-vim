@@ -24,6 +24,13 @@ PRETRAIN_VIM = {
     "calibration": False,
 }
 
+TRAIN_WITH_VIM = {
+    "name": "train_with_vim",
+    "loading": "",  # "energy_ood/CIFAR/snapshots/pretrained/cifar10_wrn_pretrained_epoch_99.pt",
+    "epochs": 100,
+    "learning_rate": 0.1,
+    "calibration": False,
+}
 
 VIM = {
     "name": "vim",

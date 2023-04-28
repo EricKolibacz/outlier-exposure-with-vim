@@ -43,6 +43,17 @@ VIM_FT = {
     "calibration": False,
 }
 
+
+ENERGY_VIM_FT = {
+    "name": "energy_vim_ft",
+    "loading": "snapshots/pretrain_vim/CIFAR10_WRN_epoch_99.pt",
+    "epochs": 10,
+    "learning_rate": 0.001,
+    "m_ins": [-23, 0.10],
+    "m_outs": [-5, 0.90],
+    "calibration": False,
+}
+
 VANILLA_FT = {
     "name": "vanilla_ft",
     "loading": "energy_ood/CIFAR/snapshots/pretrained/cifar10_wrn_pretrained_epoch_99.pt",
